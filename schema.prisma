@@ -1,0 +1,74 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum TipoUsuario {
+  CLIENTE
+  ADMIN
+}
+
+model Usuario {
+  id              Int      @id @default(autoincrement())
+  nome            String
+  email           String   @unique
+  senha           String
+  data_nascimento DateTime
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  apelido         String?
+  status          Boolean  @default(true)
+  tipoUsuario     TipoUsuario
+
+  avaliacoes Avaliacao[]
+}
+
+model Genero {
+  id        Int    @id @default(autoincrement())
+  descricao String
+
+  generosFilme GeneroFilme[]
+  Filme        Filme[]
+}
+
+model Filme {
+  id            Int    @id @default(autoincrement())
+  nome          String
+  diretor       String
+  anoLancamento Int
+  generoId      Int?
+  duracao       Int
+  produtora     String
+  classificacao String
+  poster        String
+
+  genero       Genero?       @relation(fields: [generoId], references: [id])
+  generosFilme GeneroFilme[]
+  avaliacoes   Avaliacao[]
+}
+
+model GeneroFilme {
+  idGenero Int
+  idFilme  Int
+
+  genero Genero @relation(fields: [idGenero], references: [id])
+  filme  Filme  @relation(fields: [idFilme], references: [id])
+
+  @@id([idGenero, idFilme])
+}
+
+model Avaliacao {
+  idUsuario  Int
+  idFilme    Int
+  nota       Int
+  comentario String?
+
+  usuario Usuario @relation(fields: [idUsuario], references: [id])
+  filme   Filme   @relation(fields: [idFilme], references: [id])
+
+  @@id([idUsuario, idFilme])
+}
