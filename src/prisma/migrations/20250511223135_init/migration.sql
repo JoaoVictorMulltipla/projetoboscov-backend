@@ -9,7 +9,7 @@ CREATE TABLE `Usuario` (
     `updatedAt` DATETIME(3) NOT NULL,
     `apelido` VARCHAR(191) NULL,
     `status` BOOLEAN NOT NULL DEFAULT true,
-    `tipoUsuario` VARCHAR(191) NOT NULL,
+    `tipoUsuario` ENUM('CLIENTE', 'ADMIN') NOT NULL,
 
     UNIQUE INDEX `Usuario_email_key`(`email`),
     PRIMARY KEY (`id`)
