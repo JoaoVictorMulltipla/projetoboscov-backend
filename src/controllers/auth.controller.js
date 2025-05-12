@@ -1,3 +1,4 @@
+require('dotenv').config();
 const prisma = require('../prisma/prismaClient');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -57,7 +58,7 @@ async function login(req, res) {
         tipoUsuario: usuario.tipoUsuario
       },
       JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '6h' }
     );
 
     res.status(StatusCodes.OK).json({ token });

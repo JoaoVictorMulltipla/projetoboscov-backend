@@ -4,11 +4,9 @@ const {
   criarFilme,
   listarFilmes
 } = require('../controllers/filme.controller');
+const { autenticarToken } = require('../middlewares/authMiddleware');
 
-// POST /filmes
-router.post('/', criarFilme);
-
-// GET /filmes
-router.get('/', listarFilmes);
+router.post('/', autenticarToken, criarFilme);
+router.get('/', autenticarToken, listarFilmes);
 
 module.exports = router;

@@ -63,7 +63,134 @@ async function listarAvaliacoes(req, res) {
   }
 }
 
+/**
+ * @swagger
+ * /avaliacoes/{idUsuario}/{idFilme}:
+ *   put:
+ *     summary: Atualiza uma avaliação existente
+ *     parameters:
+ *       - name: idUsuario
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: idFilme
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nota:
+ *                 type: integer
+ *               comentario:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Avaliação atualizada com sucesso.
+ *       404:
+ *         description: Avaliação não encontrada.
+ *       400:
+ *         description: Erro ao atualizar a avaliação.
+ */
+async function atualizarAvaliacao(req, res) {
+  const { idUsuario, idFilme } = req.params;
+  const { nota, comentario } = req.body;
+
+  try {
+    const avaliacao = await prisma.avaliacao.findUnique({
+      where: {
+        idUsuario_idFilme: {
+          idUsuario: Number(idUsuario),
+          idFilme: Number(idFilme)
+        }
+      }
+    });
+
+    if (!avaliacao) {
+      return res.status(StatusCodes.NOT_FOUND).json({ error: 'Avaliação não encontrada.' });
+    }
+
+    const avaliacaoAtualizada = await prisma.avaliacao.update({
+      where: {
+        idUsuario_idFilme: {
+          idUsuario: Number(idUsuario),
+          idFilme: Number(idFilme)
+        }
+      },
+      data: { nota, comentario }
+    });
+
+    res.status(StatusCodes.OK).json(avaliacaoAtualizada);
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ error: 'Erro ao atualizar avaliação.' });
+  }
+}
+
+/**
+ * @swagger
+ * /avaliacoes/{idUsuario}/{idFilme}:
+ *   delete:
+ *     summary: Deleta uma avaliação existente
+ *     parameters:
+ *       - name: idUsuario
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *       - name: idFilme
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       204:
+ *         description: Avaliação deletada com sucesso.
+ *       404:
+ *         description: Avaliação não encontrada.
+ *       400:
+ *         description: Erro ao deletar a avaliação.
+ */
+async function deletarAvaliacao(req, res) {
+  const { idUsuario, idFilme } = req.params;
+
+  try {
+    const avaliacao = await prisma.avaliacao.findUnique({
+      where: {
+        idUsuario_idFilme: {
+          idUsuario: Number(idUsuario),
+          idFilme: Number(idFilme)
+        }
+      }
+    });
+
+    if (!avaliacao) {
+      return res.status(StatusCodes.NOT_FOUND).json({ error: 'Avaliação não encontrada.' });
+    }
+
+    await prisma.avaliacao.delete({
+      where: {
+        idUsuario_idFilme: {
+          idUsuario: Number(idUsuario),
+          idFilme: Number(idFilme)
+        }
+      }
+    });
+
+    res.status(StatusCodes.NO_CONTENT).send();
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ error: 'Erro ao deletar avaliação.' });
+  }
+}
+
 module.exports = {
   criarAvaliacao,
-  listarAvaliacoes
+  listarAvaliacoes,
+  atualizarAvaliacao,
+  deletarAvaliacao
 };

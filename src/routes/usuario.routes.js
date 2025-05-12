@@ -6,7 +6,7 @@ const {
 } = require('../controllers/usuario.controller');
 const { autenticarToken } = require('../middlewares/authMiddleware');
 
-router.post('/', criarUsuario);
-router.get('/', autenticarToken, listarUsuarios); // protegido com JWT
+router.post('/', autenticarToken, criarUsuario);
+router.get('/', autenticarToken, listarUsuarios); 
 
 module.exports = router;

@@ -4,8 +4,9 @@ const {
   criarGenero,
   listarGeneros
 } = require('../controllers/genero.controller');
+const { autenticarToken } = require('../middlewares/authMiddleware');
 
-router.post('/', criarGenero);
-router.get('/', listarGeneros);
+router.post('/', autenticarToken, criarGenero);
+router.get('/', autenticarToken, listarGeneros);
 
 module.exports = router;
