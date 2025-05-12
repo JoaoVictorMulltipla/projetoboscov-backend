@@ -74,7 +74,74 @@ async function listarFilmes(req, res) {
   }
 }
 
+/**
+ * @swagger
+ * /filmes/{id}:
+ *   put:
+ *     summary: Atualiza um filme existente
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: ID do filme a ser atualizado
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               diretor:
+ *                 type: string
+ *               anoLancamento:
+ *                 type: integer
+ *               generoId:
+ *                 type: integer
+ *               duracao:
+ *                 type: integer
+ *               produtora:
+ *                 type: string
+ *               classificacao:
+ *                 type: string
+ *               poster:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Filme atualizado com sucesso.
+ *       400:
+ *         description: Erro ao atualizar filme.
+ *       404:
+ *         description: Filme não encontrado.
+ */
+async function atualizarFilme(req, res) {
+  const { id } = req.params;
+
+  try {
+    const filmeExistente = await prisma.filme.findUnique({
+      where: { id: Number(id) }
+    });
+
+    if (!filmeExistente) {
+      return res.status(StatusCodes.NOT_FOUND).json({ error: 'Filme não encontrado.' });
+    }
+
+    const filmeAtualizado = await prisma.filme.update({
+      where: { id: Number(id) },
+      data: req.body
+    });
+
+    res.status(StatusCodes.OK).json(filmeAtualizado);
+  } catch (error) {
+    res.status(StatusCodes.BAD_REQUEST).json({ error: 'Erro ao atualizar filme.' });
+  }
+}
+
 module.exports = {
   criarFilme,
-  listarFilmes
+  listarFilmes,
+  atualizarFilme
 };

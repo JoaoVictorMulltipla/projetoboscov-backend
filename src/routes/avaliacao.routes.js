@@ -10,7 +10,7 @@ const { autenticarToken } = require('../middlewares/authMiddleware');
 
 router.post('/', autenticarToken, criarAvaliacao);
 router.get('/', autenticarToken, listarAvaliacoes);
-router.put('/:idUsuario/:idFilme', autenticarToken, atualizarAvaliacao);
+router.patch('/:idUsuario/:idFilme', autenticarToken, atualizarAvaliacao);
 router.delete('/:idUsuario/:idFilme', autenticarToken, deletarAvaliacao);
 
 module.exports = router;
