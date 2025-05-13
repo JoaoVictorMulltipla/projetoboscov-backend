@@ -86,7 +86,6 @@ async function importarFilmes() {
     }
   });
 
-  // Executa todas as importações em paralelo
   await Promise.all(promessas);
 
   console.log('✅ Importação finalizada!');
