@@ -1,10 +1,10 @@
-require('dotenv').config();
-const prisma = require('../prisma/prismaClient');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { StatusCodes } = require('http-status-codes');
+require("dotenv").config();
+const prisma = require("../prisma/prismaClient");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const { StatusCodes } = require("http-status-codes");
 
-const JWT_SECRET = process.env.JWT_SECRET || 'senha-temporaria'; 
+const JWT_SECRET = process.env.JWT_SECRET || "senha-temporaria";
 
 /**
  * @swagger
@@ -34,7 +34,7 @@ async function login(req, res) {
 
   if (!email || !senha) {
     return res.status(StatusCodes.BAD_REQUEST).json({
-      error: 'Informe email e senha.',
+      error: "Informe email e senha.",
     });
   }
 
@@ -42,32 +42,43 @@ async function login(req, res) {
     const usuario = await prisma.usuario.findUnique({ where: { email } });
 
     if (!usuario) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Credenciais inválidas.' });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "Credenciais inválidas." });
     }
 
     const senhaValida = await bcrypt.compare(senha, usuario.senha);
 
     if (!senhaValida) {
-      return res.status(StatusCodes.UNAUTHORIZED).json({ error: 'Credenciais inválidas.' });
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "Credenciais inválidas." });
     }
 
     const token = jwt.sign(
       {
         id: usuario.id,
         email: usuario.email,
-        tipoUsuario: usuario.tipoUsuario
+        tipoUsuario: usuario.tipoUsuario,
       },
       JWT_SECRET,
-      { expiresIn: '6h' }
+      { expiresIn: "6h" }
     );
 
-    res.status(StatusCodes.OK).json({ token });
+    const { senha: _, ...usuarioSemSenha } = usuario;
+
+    res.status(StatusCodes.OK).json({
+      token,
+      usuario: usuarioSemSenha,
+    });
   } catch (error) {
     console.error(error);
-    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'Erro ao realizar login.' });
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "Erro ao realizar login." });
   }
 }
 
 module.exports = {
-  login
+  login,
 };
