@@ -1,5 +1,6 @@
 const prisma = require("../prisma/prismaClient");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const { StatusCodes } = require("http-status-codes");
 
 /**
@@ -36,6 +37,7 @@ async function criarUsuario(req, res) {
     email,
     senha,
     data_nascimento,
+    apelido,
     tipoUsuario = "CLIENTE",
   } = req.body;
 
@@ -52,13 +54,34 @@ async function criarUsuario(req, res) {
       data: {
         nome,
         email,
-        senha: senhaCriptografada, // aqui!
+        senha: senhaCriptografada,
         data_nascimento: new Date(data_nascimento),
+        apelido,
         tipoUsuario:
           tipoUsuario.toUpperCase() === "ADMIN" ? "ADMIN" : "CLIENTE",
       },
     });
-    res.status(StatusCodes.CREATED).json(novoUsuario);
+
+    const token = jwt.sign(
+      {
+        id: novoUsuario.id,
+        email: novoUsuario.email,
+        tipoUsuario: novoUsuario.tipoUsuario,
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.status(StatusCodes.CREATED).json({
+      token,
+      usuario: {
+        id: novoUsuario.id,
+        nome: novoUsuario.nome,
+        email: novoUsuario.email,
+        tipoUsuario: novoUsuario.tipoUsuario,
+        apelido: novoUsuario.apelido,
+      },
+    });
   } catch (error) {
     console.error(error);
     res.status(StatusCodes.BAD_REQUEST).json({
@@ -90,7 +113,77 @@ async function listarUsuarios(req, res) {
   }
 }
 
+/**
+ * @swagger
+ * /usuarios/{id}:
+ *   patch:
+ *     summary: Atualiza um usuário existente
+ *     description: Permite que o usuário atualize seu nome, apelido e senha.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               nome:
+ *                 type: string
+ *               apelido:
+ *                 type: string
+ *               senha:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado com sucesso.
+ *       404:
+ *         description: Usuário não encontrado.
+ */
+async function atualizarUsuario(req, res) {
+  const { id } = req.params;
+  const { nome, apelido, senha } = req.body;
+
+  try {
+    const usuario = await prisma.usuario.findUnique({
+      where: { id: Number(id) },
+    });
+    if (!usuario) {
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ error: "Usuário não encontrado." });
+    }
+
+    const dadosAtualizados = {
+      nome: nome || usuario.nome,
+      apelido: apelido || usuario.apelido,
+    };
+
+    if (senha) {
+      dadosAtualizados.senha = await bcrypt.hash(senha, 10);
+    }
+
+    const usuarioAtualizado = await prisma.usuario.update({
+      where: { id: Number(id) },
+      data: dadosAtualizados,
+    });
+
+    res.status(StatusCodes.OK).json(usuarioAtualizado);
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "Erro ao atualizar o usuário.",
+      detalhes: error.message,
+    });
+  }
+}
+
 module.exports = {
   criarUsuario,
   listarUsuarios,
+  atualizarUsuario,
 };
