@@ -1,16 +1,23 @@
-module.exports = {
-    openapi: "3.0.0",
+const swaggerJSDoc = require('swagger-jsdoc');
+
+const options = {
+  definition: {
+    openapi: '3.0.0',
     info: {
-      title: "API Projeto Boscov",
-      version: "1.0.0",
-      description: "Documentação da API de usuários e filmes"
+      title: 'API do Projeto Boscov',
+      version: '1.0.0',
+      description: 'Documentação da API de usuários, avaliações, gêneros e filmes',
     },
     servers: [
       {
-        url: "http://localhost:3000",
-        description: "Servidor local"
-      }
+        url: 'http://localhost:3000',
+        description: 'Servidor local',
+      },
     ],
-    paths: {} // As rotas estão descritas diretamente nos controllers via JSDoc
-  };
-  
+  },
+  apis: ['./src/controllers/*.js'],
+};
+
+const swaggerSpec = swaggerJSDoc(options);
+
+module.exports = swaggerSpec;
