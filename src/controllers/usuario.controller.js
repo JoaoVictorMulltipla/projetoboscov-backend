@@ -182,8 +182,50 @@ async function atualizarUsuario(req, res) {
   }
 }
 
+/**
+ * @swagger
+ * /usuarios/{id}/desativar:
+ *   patch:
+ *     summary: Desativa um usuário (soft delete)
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Usuário desativado com sucesso.
+ *       404:
+ *         description: Usuário não encontrado.
+ */
+async function desativarUsuario(req, res) {
+  const { id } = req.params;
+
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { id: Number(id) } });
+    if (!usuario) {
+      return res.status(StatusCodes.NOT_FOUND).json({ error: "Usuário não encontrado." });
+    }
+
+    const atualizado = await prisma.usuario.update({
+      where: { id: Number(id) },
+      data: { status: false }
+    });
+
+    res.status(StatusCodes.OK).json({ mensagem: "Usuário desativado com sucesso.", usuario: atualizado });
+  } catch (error) {
+    console.error(error);
+    res.status(StatusCodes.BAD_REQUEST).json({
+      error: "Erro ao desativar o usuário.",
+      detalhes: error.message,
+    });
+  }
+}
+
 module.exports = {
   criarUsuario,
   listarUsuarios,
   atualizarUsuario,
+  desativarUsuario
 };
